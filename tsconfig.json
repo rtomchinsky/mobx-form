@@ -4,10 +4,12 @@
     "module": "commonjs",
     "lib": [
       "es2015",
-      "es2015.promise"
+      "es2015.promise",
+      "dom"
     ],
     "jsx": "react",
     "declaration": true,
+    "sourceMap": true,
     "outDir": "./lib",
     "rootDir": "./src",
     "strict": true,
@@ -15,8 +17,6 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "inlineSourceMap": true,
-    "inlineSources": true
+    "emitDecoratorMetadata": true
   }
 }

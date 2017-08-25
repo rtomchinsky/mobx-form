@@ -1,12 +1,13 @@
 import { observable, reaction, computed, action } from 'mobx';
-import { map, mapValues, forEach, defer, reduce, every } from 'lodash';
+import { map, defer, reduce, every } from 'lodash';
 
 import FormValue from './FormValue';
 
+const RESOLVED = Promise.resolve(true);
+
 export default class Form {
-    private initialValues: {[index: string]: any};
     private formValues: Record<string, FormValue>;
-    private aboutToValidate: Promise<boolean> | null = null;
+    private aboutToValidate: Promise<boolean> = RESOLVED;
     @observable private _isSubmitting: boolean = false;
     @observable private _isValid: boolean = false;
 
@@ -19,19 +20,26 @@ export default class Form {
                 }
                 return acc;
             }, ({} as any));
-            this.initialValues = mapValues(this.formValues, it => it.value)
             
-            forEach(this.formValues, it => reaction(() => it.value, () => this.validateForm()));
+            reaction(() => map(this.formValues, it => {
+                return {
+                    value: it.value,
+                    isTouched: it.isTouched
+                }
+            }), () => {
+                this.validateForm();
+            });
             this.validateForm();
         });
     }
 
     validateForm(): Promise<boolean> {
-        if (this.aboutToValidate == null) {
+        if (this.aboutToValidate === RESOLVED) {
             this.aboutToValidate = Promise.all(map(this.formValues, it => it.validate(this)))
                 .then((results) => every(results))
                 .then(action((result: boolean) => {
                     this._isValid = result;
+                    this.aboutToValidate = RESOLVED;
                     return result;
                 }))
         }
@@ -39,11 +47,11 @@ export default class Form {
     }
 
     @computed get isPristine(): boolean {
-        return every(this.formValues, (it, key) => it.value === this.initialValues[key]);
+        return every(this.formValues, (it) => it.isPristine);
     }
 
     @computed get isDirty(): boolean {
-        return every(this.formValues, (it, key) => it.value !== this.initialValues[key]);
+        return every(this.formValues, (it) => it.isDirty);
     }
 
     @computed get isSubmitting(): boolean {
