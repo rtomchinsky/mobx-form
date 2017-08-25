@@ -63,7 +63,7 @@ export default class Form {
     }
 
     submit(onSubmit: OnSubmitFunction) {
-        if (this._isSubmitting) {
+        if (this._isSubmitting || this._isValid) {
             return;
         } else {
             this._isSubmitting = true;
