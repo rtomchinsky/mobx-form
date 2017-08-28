@@ -69,7 +69,16 @@ export default class Form {
             return Promise.reject('invalid');
         } else {
             this._isSubmitting = true;
-            return onSubmit(this);
+            return onSubmit(this).then(
+                (v) => {
+                    this._isSubmitting = false;
+                    return v;
+                },
+                (e) => {
+                    this._isSubmitting = false;
+                    throw e;
+                }
+            );
         }
     }
 }
