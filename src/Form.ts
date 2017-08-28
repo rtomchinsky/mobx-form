@@ -62,14 +62,16 @@ export default class Form {
         return this._isValid;
     }
 
-    submit(onSubmit: OnSubmitFunction) {
-        if (this._isSubmitting || this._isValid) {
-            return;
+    submit<T>(onSubmit: OnSubmitFunction<T>): Promise<T> {
+        if (this._isSubmitting) {
+            return Promise.reject('submitting');
+        } else if (!this.isValid) {
+            return Promise.reject('invalid');
         } else {
             this._isSubmitting = true;
-            onSubmit(this);
+            return onSubmit(this);
         }
     }
 }
 
-export type OnSubmitFunction<F extends Form = Form> = (form: F) => Promise<any>
+export type OnSubmitFunction<T, F extends Form = Form> = (form: F) => Promise<T>
