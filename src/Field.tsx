@@ -1,7 +1,7 @@
 import * as React from 'react';
 import FormValue from './FormValue';
 import { observer } from 'mobx-react';
-import { isEmpty, once } from 'lodash';
+import { isEmpty, once, get } from 'lodash';
 
 export type WrappedFieldprops = {
     input: {
@@ -25,7 +25,8 @@ export type FieldProps<T> = {
 export class Field<T = string> extends React.PureComponent<FieldProps<T>> {
     handleChange = (e: React.ChangeEvent<any>) => {
         const { formValue, stringToFormValue } = this.props;
-        formValue.value = stringToFormValue ? stringToFormValue(e.target.value) : e.target.value.toString()
+        const value: string = get(e.target, 'value') || get(e.nativeEvent, 'data') || get(e.nativeEvent, 'text');
+        formValue.value = stringToFormValue ? stringToFormValue(value) : value.toString() as any;
     }
 
     handleBlur = once(() => this.props.formValue.isTouched = true)
