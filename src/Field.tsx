@@ -25,7 +25,7 @@ export type FieldProps<T> = {
 export class Field<T = string> extends React.PureComponent<FieldProps<T>> {
     handleChange = (e: React.ChangeEvent<any>) => {
         const { formValue, stringToFormValue } = this.props;
-        const value: string = get(e.target, 'value') || get(e.nativeEvent, 'data') || get(e.nativeEvent, 'text');
+        const value: string = get(e.target, 'value') || get(e.nativeEvent, 'data') || get(e.nativeEvent, 'text') || '';
         formValue.value = stringToFormValue ? stringToFormValue(value) : value.toString() as any;
     }
 
