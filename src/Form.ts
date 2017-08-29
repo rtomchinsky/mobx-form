@@ -62,6 +62,7 @@ export default class Form {
         return this._isValid;
     }
 
+    @action
     submit<T>(onSubmit: OnSubmitFunction<T>): Promise<T> {
         if (this._isSubmitting) {
             return Promise.reject('submitting');
@@ -70,14 +71,14 @@ export default class Form {
         } else {
             this._isSubmitting = true;
             return onSubmit(this).then(
-                (v) => {
+                action((v: T) => {
                     this._isSubmitting = false;
                     return v;
-                },
-                (e) => {
+                }),
+                action((e) => {
                     this._isSubmitting = false;
                     throw e;
-                }
+                })
             );
         }
     }
