@@ -3,9 +3,9 @@ import FormValue from './FormValue';
 import { observer } from 'mobx-react';
 import { isEmpty, once, get } from 'lodash';
 
-export type WrappedFieldprops = {
+export type WrappedFieldProps = {
     input: {
-        onChange: React.EventHandler<React.ChangeEvent<any>>,
+        onChange: React.EventHandler<React.ChangeEvent<any>> | any,
         onBlur: React.EventHandler<any>,
         value: string
     },
@@ -17,7 +17,7 @@ export type FieldProps<T> = {
     formValue: FormValue<T>;
     formValueToString?: (formValue: T) => string;
     stringToFormValue?: (value: string) => T,
-    component: React.ComponentType<WrappedFieldprops>,
+    component: React.ComponentType<WrappedFieldProps>,
     [index: string]: any
 };
 
