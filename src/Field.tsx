@@ -21,11 +21,20 @@ export type FieldProps<T> = {
     [index: string]: any
 };
 
+function isEvent(e: any): e is React.ChangeEvent<any> {
+    return e.target || e.nativeEvent;
+}
+
 @observer
 export class Field<T = string> extends React.PureComponent<FieldProps<T>> {
-    handleChange = (e: React.ChangeEvent<any>) => {
-        const { formValue, stringToFormValue } = this.props;
-        const value: string = get(e.target, 'value') || get(e.nativeEvent, 'data') || get(e.nativeEvent, 'text') || '';
+    handleChange = (e: React.ChangeEvent<any> | T) => {
+        const { formValue, formValueToString, stringToFormValue } = this.props;
+        let value: string;
+        if (isEvent(e)) {
+            value = get(e.target, 'value') || get(e.nativeEvent, 'data') || get(e.nativeEvent, 'text') || '';
+        } else {
+            value = formValueToString ? formValueToString(e) : '';
+        }
         formValue.value = stringToFormValue ? stringToFormValue(value) : value.toString() as any;
     }
 
