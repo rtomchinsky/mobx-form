@@ -33,7 +33,7 @@ export class Field<T = string> extends React.PureComponent<FieldProps<T>> {
         if (isEvent(e)) {
             value = get(e.target, 'value') || get(e.nativeEvent, 'data') || get(e.nativeEvent, 'text') || '';
         } else {
-            value = formValueToString ? formValueToString(e) : '';
+            value = formValueToString ? formValueToString(e) : e.toString();
         }
         formValue.value = stringToFormValue ? stringToFormValue(value) : value.toString() as any;
     }
