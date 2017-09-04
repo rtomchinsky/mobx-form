@@ -52,8 +52,8 @@ export default class Form {
                         })
                 })
                 .subscribe((result) => {
-                    this.aboutToValidate = null
                     this.aboutToValidate!.resolve(result);
+                    this.aboutToValidate = null
                 })
 
             this.formValues = reduce(this as {}, (acc, value, key) => {
