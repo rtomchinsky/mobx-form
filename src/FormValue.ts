@@ -16,20 +16,21 @@ export default class FormValue<T = {}> {
     }
 
     private readonly _initialValue: T;
-    private _onFormUpdate?: (this: FormValue<T>, form: Form) => void;
     @observable private _value: T;
     @observable private _errors: string[] = [];
     @observable private _touched: boolean = false;
     @observable private _isValidating: boolean = false;
     @observable public enabled: boolean = true;
-
-    private validators: Validator<T>[];
+    
+    private validators?: Validator<T>[];
+    private onFormUpdate?: (this: FormValue<T>, form: Form) => void;
     private aboutToValidate: Promise<boolean> | null;
-
+    
     constructor(options: FormValueOptions<T>) {
         this._initialValue = options.initialValue;
         this._value = options.initialValue;
-        this._onFormUpdate = options.onFormUpdate;
+        this.onFormUpdate = options.onFormUpdate;
+        this.validators = options.validators;
     }
     
     @computed get value() {
@@ -76,8 +77,8 @@ export default class FormValue<T = {}> {
     }
 
     update = (form: Form): void => {
-        if (this._onFormUpdate) {
-            this._onFormUpdate.call(this, form);
+        if (this.onFormUpdate) {
+            this.onFormUpdate.call(this, form);
         }
     }
 
@@ -90,7 +91,7 @@ export default class FormValue<T = {}> {
             this.aboutToValidate = new Promise((resolve, reject) => {
                 defer(action(() => {
                     this._isValidating = true;
-                    const all = this.validators
+                    const all = this.validators!
                         .map(v => v(this._value, form))
                         .map(v => Promise.resolve(v))
                     
