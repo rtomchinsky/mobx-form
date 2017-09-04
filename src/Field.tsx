@@ -3,21 +3,19 @@ import FormValue from './FormValue';
 import { observer } from 'mobx-react';
 import { isEmpty, once, get } from 'lodash';
 
-export type WrappedFieldProps = {
+export type WrappedFieldProps<P = {}, T = string> = P & {
     input: {
         onChange: React.EventHandler<React.ChangeEvent<any>> | any,
         onBlur: React.EventHandler<any>,
-        value: string
+        value: T
     },
     errors?: Array<string>,
-    [index: string]: any
 }
 
-export type FieldProps<T> = {
+export type FieldProps<T = string> = {
     formValue: FormValue<T>;
-    formValueToString?: (formValue: T) => string;
-    stringToFormValue?: (value: string) => T,
-    component: React.ComponentType<WrappedFieldProps>,
+    stringToFormValue: (value: string) => T,
+    component: React.ComponentType<WrappedFieldProps<any, T>>,
     [index: string]: any
 };
 
@@ -28,20 +26,20 @@ function isEvent(e: any): e is React.ChangeEvent<any> {
 @observer
 export class Field<T = string> extends React.PureComponent<FieldProps<T>> {
     handleChange = (e: React.ChangeEvent<any> | T) => {
-        const { formValue, formValueToString, stringToFormValue } = this.props;
-        let value: string;
+        const { formValue, stringToFormValue } = this.props;
+        let value: T;
         if (isEvent(e)) {
-            value = get(e.target, 'value') || get(e.nativeEvent, 'data') || get(e.nativeEvent, 'text') || '';
+            value = stringToFormValue(get(e.target, 'value') || get(e.nativeEvent, 'data') || get(e.nativeEvent, 'text') || '');
         } else {
-            value = formValueToString ? formValueToString(e) : e.toString();
+            value = e;
         }
-        formValue.value = stringToFormValue ? stringToFormValue(value) : value.toString() as any;
+        formValue.value = value;
     }
 
     handleBlur = once(() => this.props.formValue.isTouched = true)
 
     render() {
-        const { formValue, formValueToString, stringToFormValue, component: Component, ...rest } = this.props;
+        const { formValue, stringToFormValue, component: Component, ...rest } = this.props;
         const hasError = formValue.isTouched && !isEmpty(formValue.errors);
 
         if (!formValue.enabled) {
@@ -53,7 +51,7 @@ export class Field<T = string> extends React.PureComponent<FieldProps<T>> {
                 input={{
                     onBlur: this.handleBlur,
                     onChange: this.handleChange,
-                    value: formValueToString ? formValueToString(formValue.value) : formValue.value.toString()
+                    value: formValue.value
                 }}
                 errors={hasError ? formValue.errors : undefined}
             />
