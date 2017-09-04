@@ -1,5 +1,5 @@
 import { observable, computed, action, toJS } from 'mobx';
-import { defer, flatMap, isObjectLike } from 'lodash';
+import { defer, flatMap, isObjectLike, isArray } from 'lodash';
 
 import Validator from './Validator';
 import Form from './Form';
@@ -20,6 +20,7 @@ export default class FormValue<T = {}> {
     @observable private _value: T;
     @observable private _errors: string[] = [];
     @observable private _touched: boolean = false;
+    @observable private _isValidating: boolean = false;
     @observable public enabled: boolean = false;
 
     private validators: Validator<T>[];
@@ -67,6 +68,14 @@ export default class FormValue<T = {}> {
         return this.value === this._initialValue;
     }
 
+    @computed get isValidating() {
+        return this._isValidating;
+    }
+
+    @computed get isValid() {
+        return this._errors.length === 0;
+    }
+
     @action disable() {
         this.enabled = false;
     }
@@ -87,13 +96,23 @@ export default class FormValue<T = {}> {
             return Promise.resolve(true);
         }
         if (this.aboutToValidate == null) {
-            this.aboutToValidate = new Promise((resolve) => {
+            this.aboutToValidate = new Promise((resolve, reject) => {
                 defer(action(() => {
-                    this._errors = flatMap(this.validators, v => v(this._value, form) || '')
-                        .filter(it => it.length > 0);
-                    this.aboutToValidate = null;
-
-                    resolve(this._errors.length === 0);
+                    this._isValidating = true;
+                    const all = this.validators
+                        .map(v => v(this._value, form))
+                        .map(v => Promise.resolve(v))
+                    
+                    Promise.all(all).then((results) => {
+                        this._errors = flatMap(results, r => isArray(r) ? r : [ r ])
+                            .filter(it => it != null) as string[]
+                        return resolve(this.isValid);
+                    }, (reason) => {
+                        return reject(reason);
+                    }).then(() => {
+                        this._isValidating = false;
+                        this.aboutToValidate = null;
+                    })
                 }));
             });
         }
