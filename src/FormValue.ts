@@ -21,7 +21,7 @@ export default class FormValue<T = {}> {
     @observable private _errors: string[] = [];
     @observable private _touched: boolean = false;
     @observable private _isValidating: boolean = false;
-    @observable public enabled: boolean = false;
+    @observable public enabled: boolean = true;
 
     private validators: Validator<T>[];
     private aboutToValidate: Promise<boolean> | null;
