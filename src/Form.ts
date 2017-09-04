@@ -1,13 +1,11 @@
 import { observable, reaction, computed, action } from 'mobx';
-import { map, defer, reduce, every } from 'lodash';
+import { forEach, map, defer, reduce, every } from 'lodash';
 
 import FormValue from './FormValue';
 
-const RESOLVED = Promise.resolve(true);
-
 export default class Form {
     private formValues: Record<string, FormValue>;
-    private aboutToValidate: Promise<boolean> = RESOLVED;
+    private aboutToValidate: Promise<boolean> | null = null;
     @observable private _isSubmitting: boolean = false;
     @observable private _isValid: boolean = false;
 
@@ -28,22 +26,28 @@ export default class Form {
                 }
             }), () => {
                 this.validateForm();
+                this.update();
+            }, {
+                fireImmediately: true
             });
-            this.validateForm();
         });
     }
 
     validateForm(): Promise<boolean> {
-        if (this.aboutToValidate === RESOLVED) {
+        if (this.aboutToValidate == null) {
             this.aboutToValidate = Promise.all(map(this.formValues, it => it.validate(this)))
                 .then((results) => every(results))
                 .then(action((result: boolean) => {
                     this._isValid = result;
-                    this.aboutToValidate = RESOLVED;
+                    this.aboutToValidate = null;
                     return result;
                 }))
         }
         return this.aboutToValidate as Promise<boolean>
+    }
+
+    update(): void {
+        forEach(this.formValues, (it) => it.update(this));
     }
 
     @computed get isPristine(): boolean {

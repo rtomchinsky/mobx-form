@@ -43,6 +43,10 @@ export class Field<T = string> extends React.PureComponent<FieldProps<T>> {
     render() {
         const { formValue, formValueToString, stringToFormValue, component: Component, ...rest } = this.props;
         const hasError = formValue.isTouched && !isEmpty(formValue.errors);
+
+        if (!formValue.enabled) {
+            return null;
+        }
         return (
             <Component
                 {...rest}
