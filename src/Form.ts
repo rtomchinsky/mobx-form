@@ -9,27 +9,26 @@ import 'rxjs/add/operator/switchMap';
 
 import FormValue from './FormValue';
 
-class DeferredPromise<T> extends Promise<T> {
-    private resolver: Function;
-    private rejector: Function;
-    constructor() {
-        super((resolve, reject) => {
-            this.resolver = resolve;
-            this.rejector = reject;
-        });
+class Deferred<T> {
+    private _resolve: (result: T) => void;
+    private _reject: (reason: any) => void;
+    public readonly promise: Promise<T> = new Promise((resolve, reject) => {
+        this._resolve = resolve;
+        this._reject = reject;
+    });
+
+    get resolve() {
+        return this._resolve;
     }
 
-    resolve(result: T) {
-        this.resolver(result);
-    }
-    reject(reason: any) {
-        this.rejector(reason);
+    get reject() {
+        return this._reject;
     }
 }
 
 export default class Form {
     private formValues: Record<string, FormValue>;
-    private aboutToValidate: DeferredPromise<boolean> | null = null;
+    private aboutToValidate: Deferred<boolean> | null = null;
     private validationSubject = new Subject();
     private subscription: Subscription;
     @observable private _isValidating: boolean = false;
@@ -108,10 +107,10 @@ export default class Form {
 
     validateForm(): Promise<boolean> {
         if (this.aboutToValidate == null) {
-            this.aboutToValidate = new DeferredPromise();
+            this.aboutToValidate = new Deferred();
         }
         this.validationSubject.next();
-        return this.aboutToValidate;
+        return this.aboutToValidate.promise;
     }
 
     @action
