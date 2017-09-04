@@ -26,19 +26,10 @@ export default class FormValue<T = {}> {
     private validators: Validator<T>[];
     private aboutToValidate: Promise<boolean> | null;
 
-    constructor(options: FormValueOptions<T>)
-    constructor(initialValue: T, ...validators: Array<Validator<T>>)
-    constructor(...args: any[]) {
-        if (args.length === 1) {
-            const options = args[0] as FormValueOptions<T>;
-            this._initialValue = options.initialValue;
-            this._value = options.initialValue;
-            this._onFormUpdate = options.onFormUpdate;
-        } else {
-            this._initialValue = args[0];
-            this._value = args[0];
-            this.validators = args.slice(1);
-        }
+    constructor(options: FormValueOptions<T>) {
+        this._initialValue = options.initialValue;
+        this._value = options.initialValue;
+        this._onFormUpdate = options.onFormUpdate;
     }
     
     @computed get value() {
