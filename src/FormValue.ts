@@ -110,3 +110,9 @@ export class FormValue<T = {}> {
         return this.aboutToValidate;
     }
 }
+
+export class SimpleFormValue<T> extends FormValue<T> {
+    constructor(initialValue: T, ...validators: Validator<T>[]) {
+        super({ initialValue, validators });
+    }
+}

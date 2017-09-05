@@ -14,7 +14,7 @@ import { Deferred } from './internal/Deferred';
 
 import { Fields } from './Fields';
 
-export function createForm<T extends Fields>(fields: T): Form & {[K in keyof T]: FormValue<any>} {
+export function createForm<T extends Fields>(fields: T): Form & {[K in keyof T]: T[K]} {
     const formMetadata = observable({
         isDirty: false,
         isPristine: true,
