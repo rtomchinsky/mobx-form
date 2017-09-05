@@ -1,16 +1,15 @@
 import { observable, computed, action, toJS } from 'mobx';
 import { defer, flatMap, isObjectLike, isArray } from 'lodash';
 
-import Validator from './Validator';
-import Form from './Form';
+import { Validator } from './Validator';
 
 export type FormValueOptions<T> = {
     initialValue: T;
     validators?: Array<Validator<T>>;
-    onFormUpdate?: (this: FormValue<T>, form: Form) => void;
+    onFormUpdate?: (this: FormValue<T>, fields: Record<string, FormValue<any>>) => void;
 }
 
-export default class FormValue<T = {}> {
+export class FormValue<T = {}> {
     static isFormValue(t: any): t is FormValue<any> {
         return t instanceof FormValue;
     }
@@ -23,7 +22,7 @@ export default class FormValue<T = {}> {
     @observable public enabled: boolean = true;
     
     private validators?: Validator<T>[];
-    private onFormUpdate?: (this: FormValue<T>, form: Form) => void;
+    private onFormUpdate?: (this: FormValue<T>, fields: Record<string, FormValue<any>>) => void;
     private aboutToValidate: Promise<boolean> | null;
     
     constructor(options: FormValueOptions<T>) {
@@ -76,13 +75,13 @@ export default class FormValue<T = {}> {
         this.enabled = true;
     }
 
-    update = (form: Form): void => {
+    update<Fields extends Record<string, FormValue<any>>>(fields: Fields): void {
         if (this.onFormUpdate) {
-            this.onFormUpdate.call(this, form);
+            this.onFormUpdate.call(this, fields);
         }
     }
 
-    validate(form: Form): Promise<boolean> {
+    validate<Fields extends Record<string, FormValue<any>>>(fields: Fields): Promise<boolean> {
         if (!this.enabled || this.validators == null) {
             this._errors = [];
             return Promise.resolve(true);
@@ -92,7 +91,7 @@ export default class FormValue<T = {}> {
                 defer(action(() => {
                     this._isValidating = true;
                     const all = this.validators!
-                        .map(v => v(this._value, form))
+                        .map(v => v(this._value, fields))
                         .map(v => Promise.resolve(v))
                     
                     Promise.all(all).then((results) => {

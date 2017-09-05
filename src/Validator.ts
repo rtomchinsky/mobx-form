@@ -1,7 +1,7 @@
-import Form from './Form';
+import { FormValue } from './FormValue';
 
 export type ValidationResult = string | Array<string> | undefined;
 
-export default interface Validator<T> {
-    (value: T, form: Form): ValidationResult | Promise<ValidationResult>
+export type Validator<T> = {
+    (value: T, form: Record<string, FormValue<any>>): ValidationResult | Promise<ValidationResult>
 }

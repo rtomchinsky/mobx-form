@@ -1,5 +1,5 @@
 import * as React from 'react';
-import FormValue from './FormValue';
+import { FormValue } from './FormValue';
 import { observer } from 'mobx-react';
 import { isEmpty, once, get } from 'lodash';
 
