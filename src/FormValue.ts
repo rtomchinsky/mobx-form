@@ -1,12 +1,14 @@
-import { observable, computed, action, toJS } from 'mobx';
-import { defer, flatMap, isObjectLike, isArray } from 'lodash';
+import { observable, computed, action, runInAction, toJS } from 'mobx';
+import { flatMap, isObjectLike, isArray } from 'lodash';
 
-import { Validator } from './Validator';
+import { Validator, ValidationResult } from './Validator';
+import { Form } from './Form';
+import { Deferred } from './internal/Deferred';
 
 export type FormValueOptions<T> = {
     initialValue: T;
-    validators?: Array<Validator<T>>;
-    onFormUpdate?: (this: FormValue<T>, fields: Record<string, FormValue<any>>) => void;
+    validator?: Validator<T>;
+    onFormUpdate?: (this: FormValue<T>, form: Form) => void;
 }
 
 export class FormValue<T = {}> {
@@ -21,15 +23,15 @@ export class FormValue<T = {}> {
     @observable private _isValidating: boolean = false;
     @observable public enabled: boolean = true;
     
-    private validators?: Validator<T>[];
-    private onFormUpdate?: (this: FormValue<T>, fields: Record<string, FormValue<any>>) => void;
-    private aboutToValidate: Promise<boolean> | null;
+    private validator?: Validator<T>;
+    private onFormUpdate?: (this: FormValue<T>, form: Form) => void;
+    private deferred: Deferred<boolean> | null;
     
     constructor(options: FormValueOptions<T>) {
         this._initialValue = options.initialValue;
         this._value = options.initialValue;
         this.onFormUpdate = options.onFormUpdate;
-        this.validators = options.validators;
+        this.validator = options.validator;
     }
     
     @computed get value() {
@@ -75,44 +77,41 @@ export class FormValue<T = {}> {
         this.enabled = true;
     }
 
-    update<Fields extends Record<string, FormValue<any>>>(fields: Fields): void {
+    update(form: Form): void {
         if (this.onFormUpdate) {
-            this.onFormUpdate.call(this, fields);
+            this.onFormUpdate.call(this, form);
         }
     }
 
-    validate<Fields extends Record<string, FormValue<any>>>(fields: Fields): Promise<boolean> {
-        if (!this.enabled || this.validators == null) {
-            this._errors = [];
+    async validate(form: Form): Promise<boolean> {
+        if (!this.enabled || this.validator == null) {
+            runInAction(() => {
+                this._errors = [];
+            });
             return Promise.resolve(true);
         }
-        if (this.aboutToValidate == null) {
-            this.aboutToValidate = new Promise((resolve, reject) => {
-                defer(action(() => {
-                    this._isValidating = true;
-                    const all = this.validators!
-                        .map(v => v(this._value, fields))
-                        .map(v => Promise.resolve(v))
-                    
-                    Promise.all(all).then((results) => {
-                        this._errors = flatMap(results, r => isArray(r) ? r : [ r ])
-                            .filter(it => it != null) as string[]
-                        return resolve(this.isValid);
-                    }, (reason) => {
-                        return reject(reason);
-                    }).then(() => {
-                        this._isValidating = false;
-                        this.aboutToValidate = null;
-                    })
-                }));
-            });
+        if (this.deferred == null) {
+            this._isValidating = true;
+            const deferred = this.deferred = new Deferred();
+            const validationResult = this.validator(this._value, form);
+            
+            Promise.resolve(validationResult).then(action((result: ValidationResult) => {
+                if (result == null) {
+                    this._errors = [];
+                } else if (isArray(result)) {
+                    this._errors = flatMap(result, r => isArray(r) ? r : [ r ])
+                        .filter(it => it != null) as string[]
+                } else {
+                    this._errors = [ result as string ];
+                }
+                return deferred.resolve(this.isValid);
+            }), (reason: any) => {
+                return deferred.reject(reason);
+            }).then(action(() => {
+                this._isValidating = false;
+                this.deferred = null;
+            }))
         }
-        return this.aboutToValidate;
-    }
-}
-
-export class SimpleFormValue<T> extends FormValue<T> {
-    constructor(initialValue: T, ...validators: Validator<T>[]) {
-        super({ initialValue, validators });
+        return this.deferred.promise;
     }
 }
