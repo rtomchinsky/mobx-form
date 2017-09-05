@@ -14,7 +14,7 @@ export type WrappedFieldProps<P = {}, T = string> = P & {
 
 export type FieldProps<T = string> = {
     formValue: FormValue<T>;
-    stringToFormValue: (value: string) => T,
+    stringToFormValue?: (value: string) => T,
     component: React.ComponentType<WrappedFieldProps<any, T>>,
     [index: string]: any
 };
@@ -29,7 +29,15 @@ export class Field<T = string> extends React.PureComponent<FieldProps<T>> {
         const { formValue, stringToFormValue } = this.props;
         let value: T;
         if (isEvent(e)) {
-            value = stringToFormValue(get(e.target, 'value') || get(e.nativeEvent, 'data') || get(e.nativeEvent, 'text') || '');
+            let stringValue: string = get(e.target, 'value') || get(e.nativeEvent, 'data') || get(e.nativeEvent, 'text') || '';
+            if (stringToFormValue == null) {
+                if (typeof formValue.value !== 'string') {
+                    throw new Error('A Field with a non-string FormValue must be provided with stringToFormValue');
+                }
+                value = stringValue as any as T;
+            } else {
+                value = stringToFormValue(stringValue);
+            }
         } else {
             value = e;
         }
