@@ -83,6 +83,11 @@ export class FormValue<T = {}> {
         }
     }
 
+    @action
+    reset(): void {
+        this.value = this._initialValue;
+    }
+
     async validate(form: Form): Promise<boolean> {
         if (!this.enabled || this.validator == null) {
             runInAction(() => {

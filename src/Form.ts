@@ -123,6 +123,12 @@ export class Form {
             );
         }
     }
+
+    @action
+    reset() {
+        this.initialize();
+        forEach(this.formValues, v => v.reset());
+    }
 }
 
 export type OnSubmitFunction<T, F extends any = any> = (form: F) => Promise<T>

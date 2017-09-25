@@ -102,3 +102,15 @@ test('FormValue accepts an onFormUpdate function', t => {
     value.update({} as any);
     t.plan(1);
 });
+
+test('FormValue can be reset', t => {
+    const value = new FormValue({
+        initialValue: ''
+    });
+
+    value.value = '123';
+
+    t.is(value.value, '123');
+    value.reset();
+    t.is(value.value, '');
+});
