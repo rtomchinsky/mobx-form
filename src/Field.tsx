@@ -6,17 +6,21 @@ import { FormValue } from './FormValue';
 
 export type WrappedFieldProps<P = {}, T = string> = P & {
     input: {
-        onChange: React.EventHandler<React.ChangeEvent<any>> | any,
-        onBlur: React.EventHandler<any>,
+        onFocus: React.FocusEventHandler<React.FocusEvent<any>>;
+        onChange: React.EventHandler<React.ChangeEvent<any>> | any;
+        onBlur: React.FocusEventHandler<React.FocusEvent<any>>;
         value: T
     },
     errors?: Array<string>,
 }
 
-export type FieldProps<T = string> = {
+export type FieldProps<T = string, P extends {} = {}> = {
     formValue: FormValue<T>;
     stringToFormValue?: (value: string) => T,
     component: React.ComponentType<WrappedFieldProps<any, T>>,
+    onBlur?: React.FocusEventHandler<React.FocusEvent<any>>;
+    onFocus?: React.FocusEventHandler<React.FocusEvent<any>>;
+    fieldInputProps?: P;
     [index: string]: any
 };
 
@@ -45,10 +49,29 @@ export class Field<T = string> extends React.PureComponent<FieldProps<T>> {
         formValue.value = value;
     }
 
-    handleBlur = once(() => this.props.formValue.isTouched = true)
+    private touch = once(() => this.props.formValue.isTouched = true);
+
+    handleFocus = (e: React.FocusEvent<any>) => {
+        if (this.props.onFocus) {
+            this.props.onFocus(e);
+        }
+    }
+
+    handleBlur = (e: React.FocusEvent<any>) => {
+        this.touch();
+        if (this.props.onBlur) {
+            this.props.onBlur(e);
+        }
+    }
 
     render() {
-        const { formValue, stringToFormValue, component: Component, ...rest } = this.props;
+        const { 
+            formValue,
+            stringToFormValue,
+            component: Component,
+            fieldInputProps = {},
+            ...rest
+        } = this.props;
         const hasError = formValue.isTouched && !isEmpty(formValue.errors);
 
         if (!formValue.enabled) {
@@ -58,7 +81,9 @@ export class Field<T = string> extends React.PureComponent<FieldProps<T>> {
             <Component
                 {...rest}
                 input={{
+                    ...fieldInputProps,
                     onBlur: this.handleBlur,
+                    onFocus: this.handleFocus,
                     onChange: this.handleChange,
                     value: formValue.value
                 }}
