@@ -96,7 +96,7 @@ export class Form {
 
     @computed get isValid(): boolean {
         this.initialize();
-        return this._isValid;
+        return !this._isValidating && this._isValid;
     }
 
     validateForm(): Promise<boolean> {
