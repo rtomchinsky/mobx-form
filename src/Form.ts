@@ -1,5 +1,5 @@
 import { observable, reaction, computed, action } from 'mobx';
-import { forEach, map, reduce, every, once } from 'lodash';
+import { forEach, map, reduce, every, once, defer } from 'lodash';
 
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
@@ -18,6 +18,12 @@ export class Form {
     @observable private _isValidating: boolean = false;
     @observable private _isSubmitting: boolean = false;
     @observable private _isValid: boolean = false;
+
+    constructor() {
+        // Fail-safe if no functions are called on this Form
+        // and fields are interacted with
+        defer(() => this.initialize());
+    }
 
     readonly initialize = once(() => {
         this.subscription = this.validationSubject.asObservable()
