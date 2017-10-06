@@ -62,8 +62,8 @@ export class FormValue<T = {}> {
                         this._errors = errors;
                         this._isValidating = false;
                     });
-                    return this.isValid;
                 }
+                return this.isValid;
             }))
             .subscribe((isValid: boolean) => {
                 this.deferred!.resolve(isValid);
@@ -103,7 +103,7 @@ export class FormValue<T = {}> {
     }
 
     @computed get isValid() {
-        return this._errors.length === 0;
+        return !this._isValidating && this._errors.length === 0;
     }
 
     @action disable() {

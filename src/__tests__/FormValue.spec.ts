@@ -114,3 +114,20 @@ test('FormValue can be reset', t => {
     value.reset();
     t.is(value.value, '');
 });
+
+test('FormValue is only valid if not validating', t => {
+    const value = new FormValue({
+        initialValue: '',
+        validator: () => {
+            return new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
+        }
+    });
+
+    const promise = value.validate(null!).then(() => {
+        t.true(value.isValid);
+    });
+    t.false(value.isValid);
+    return promise;
+});
