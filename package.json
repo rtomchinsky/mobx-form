@@ -6,6 +6,7 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "test": "npm run prepare && ava",
+    "test:cover": "nyc --all npm test",
     "prepare": "rimraf lib && tsc",
     "preversion": "npm test"
   },
@@ -16,6 +17,7 @@
     "@types/lodash": "^4.14.73",
     "@types/react": "^16.0.2",
     "ava": "^0.22.0",
+    "nyc": "^11.2.1",
     "rimraf": "^2.6.1",
     "typescript": "^2.5.3"
   },
@@ -30,5 +32,10 @@
   "peerDependencies": {
     "react": "^15.6.1",
     "react-dom": "^15.6.1"
+  },
+  "nyc": {
+    "include": [
+      "lib/**/*.{js|jsx}"
+    ]
   }
 }
