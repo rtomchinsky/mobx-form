@@ -39,6 +39,7 @@ export class Form {
                         return false;
                     })
             })
+            .do(action(() => this._isValidating = false))
             .subscribe((result) => {
                 this.deferred!.resolve(result);
                 this.deferred = null
