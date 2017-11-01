@@ -6,9 +6,9 @@ import { FormValue } from './FormValue';
 
 export type WrappedFieldProps<P = {}, T = string> = P & {
     input: {
-        onFocus: React.FocusEventHandler<React.FocusEvent<any>>;
-        onChange: React.EventHandler<React.ChangeEvent<any>> | any;
-        onBlur: React.FocusEventHandler<React.FocusEvent<any>>;
+        onFocus: React.FocusEventHandler<any>;
+        onChange: React.ChangeEventHandler<any> | any;
+        onBlur: React.FocusEventHandler<any>;
         value: T
     },
     errors?: Array<string>,
@@ -18,8 +18,8 @@ export type FieldProps<T = string, P extends {} = {}> = {
     formValue: FormValue<T>;
     stringToFormValue?: (value: string) => T,
     component: React.ComponentType<WrappedFieldProps<any, T>>,
-    onBlur?: React.FocusEventHandler<React.FocusEvent<any>>;
-    onFocus?: React.FocusEventHandler<React.FocusEvent<any>>;
+    onBlur?: React.FocusEventHandler<any>;
+    onFocus?: React.FocusEventHandler<any>;
     fieldInputProps?: P;
     [index: string]: any
 };
@@ -29,7 +29,7 @@ function isEvent(e: any): e is React.ChangeEvent<any> {
 }
 
 @observer
-export class Field<T = string> extends React.PureComponent<FieldProps<T>> {
+export class Field<T = string> extends React.Component<FieldProps<T>> {
     handleChange = (e: React.ChangeEvent<any> | T) => {
         const { formValue, stringToFormValue } = this.props;
         let value: T;
