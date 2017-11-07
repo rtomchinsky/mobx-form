@@ -1,6 +1,6 @@
 {
   "name": "@rtomchinsky/mobx-form",
-  "version": "0.5.1",
+  "version": "0.5.0",
   "description": "",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -8,7 +8,7 @@
     "test": "ava",
     "test:cover": "nyc --all npm test",
     "build": "rimraf lib && tsc",
-    "preversion": "npm run build && npm test"
+    "preversion": "npm test"
   },
   "keywords": [],
   "author": "",

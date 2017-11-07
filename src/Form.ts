@@ -112,6 +112,9 @@ export class Form {
     @action
     submit<T>(onSubmit: OnSubmitFunction<T>): Promise<T> {
         this.initialize();
+        forEach(this.formValues, action((it: FormValue<any>) => {
+            it.isTouched = true;
+        }));
         if (this._isSubmitting) {
             return Promise.reject('submitting');
         } else if (!this.isValid) {
