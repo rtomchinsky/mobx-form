@@ -71,6 +71,7 @@ export class Field<T = string> extends React.Component<FieldProps<T>> {
             stringToFormValue,
             component: Component,
             fieldInputProps = {},
+            disabled,
             ...rest
         } = this.props;
         const hasError = formValue.isTouched && !isEmpty(formValue.errors);
@@ -78,7 +79,7 @@ export class Field<T = string> extends React.Component<FieldProps<T>> {
         return (
             <Component
                 {...rest}
-                disabled={formValue.disabled}
+                disabled={formValue.disabled || disabled}
                 input={{
                     ...fieldInputProps,
                     onBlur: this.handleBlur,
