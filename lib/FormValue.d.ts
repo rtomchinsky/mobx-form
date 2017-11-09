@@ -1,3 +1,4 @@
+import { IReactionDisposer } from 'mobx';
 import { Validator } from './Validator';
 import { Form } from './Form';
 import 'rxjs/add/operator/toPromise';
@@ -5,21 +6,23 @@ import 'rxjs/add/operator/switchMap';
 export declare type FormValueOptions<T> = {
     initialValue: T;
     validator?: Validator<T>;
-    onFormUpdate?: (this: FormValue<T>, form: Form) => void;
+    reaction?: (form: Form<any>) => IReactionDisposer;
 };
 export declare class FormValue<T = {}> {
+    private form;
+    private options;
     static isFormValue(t: any): t is FormValue<any>;
     private readonly _initialValue;
     private _value;
     private _errors;
     private _touched;
     private _isValidating;
-    enabled: boolean;
+    disabled: boolean;
     private validator?;
-    private onFormUpdate?;
+    private reaction?;
     private deferred;
     private validationSubject;
-    constructor(options: FormValueOptions<T>);
+    constructor(form: Form<any>, options: FormValueOptions<T>);
     value: T;
     readonly errors: string[];
     isTouched: boolean;
@@ -29,7 +32,8 @@ export declare class FormValue<T = {}> {
     readonly isValid: boolean;
     disable(): void;
     enable(): void;
-    update(form: Form): void;
+    dispose(): void;
+    protected initialize: () => void;
     reset(): void;
-    validate(form: Form): Promise<boolean>;
+    validate(): Promise<boolean>;
 }

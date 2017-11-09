@@ -12,6 +12,7 @@ export type WrappedFieldProps<P = {}, T = string> = P & {
         value: T
     },
     errors?: Array<string>,
+    disabled?: boolean;
 }
 
 export type FieldProps<T = string, P extends {} = {}> = {
@@ -74,12 +75,10 @@ export class Field<T = string> extends React.Component<FieldProps<T>> {
         } = this.props;
         const hasError = formValue.isTouched && !isEmpty(formValue.errors);
 
-        if (!formValue.enabled) {
-            return null;
-        }
         return (
             <Component
                 {...rest}
+                disabled={formValue.disabled}
                 input={{
                     ...fieldInputProps,
                     onBlur: this.handleBlur,

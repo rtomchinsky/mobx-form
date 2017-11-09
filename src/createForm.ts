@@ -1,5 +1,5 @@
 import { Form, OnSubmitFunction } from './Form';
-import { FormValue } from './FormValue';
+import { FormValue, FormValueOptions } from './FormValue';
 
 import { action, observable, runInAction, reaction } from 'mobx';
 
@@ -9,12 +9,12 @@ import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/operator/do';                    
 import 'rxjs/add/operator/switchMap';
 
-import { map, every, forEach } from 'lodash';
+import { map, every, forEach, mapValues } from 'lodash';
 import { Deferred } from './internal/Deferred';
 
 import { Fields } from './Fields';
 
-export function createForm<T extends Fields>(fields: T): Form & {[K in keyof T]: T[K]} {
+export function createForm<T extends Fields>(fields: T): Form<{[K in keyof T]: FormValue<T[K]['initialValue']>}> {
     const formMetadata = observable({
         isDirty: false,
         isPristine: true,
@@ -23,13 +23,7 @@ export function createForm<T extends Fields>(fields: T): Form & {[K in keyof T]:
         isValid: false,
     });
 
-    const formFields = observable(fields);
-
-    const validation = {
-        deferred: null as Deferred<any> | null,
-        subscription: null as Subscription | null,
-    }
-    const form: Form & {[K in keyof T]: FormValue<any>} = {
+    let form: any = {
         get isDirty() { return formMetadata.isDirty },
         get isPristine() { return formMetadata.isPristine },
         get isSubmitting() { return formMetadata.isSubmitting },
@@ -43,13 +37,10 @@ export function createForm<T extends Fields>(fields: T): Form & {[K in keyof T]:
             }
         },
 
-        update() {
-            forEach(formFields, (value) => {
-                value.update(form);
-            });
-        },
-
         async submit<T>(onSubmit: OnSubmitFunction<T, {[K in keyof T]: FormValue<any>}>): Promise<T> {
+            forEach(formFields, action((it: FormValue<any>) => {
+                it.isTouched = true;
+            }));
             if (formMetadata.isSubmitting) {
                 return Promise.reject('submitting');
             } else if (!formMetadata.isValid) {
@@ -65,15 +56,28 @@ export function createForm<T extends Fields>(fields: T): Form & {[K in keyof T]:
                 }
             }
         },
-        
-        validateForm(): Promise<boolean> {
-            if (validation.deferred == null) {
-                validation.deferred = new Deferred();
-            }
-            sub.next();
-            return validation.deferred.promise;
-        }, 
-        ...(formFields as any)
+    };
+
+    const formFields = observable(mapValues(fields, (options: FormValueOptions<any>) => {
+        return new FormValue(form, options);
+    }));
+    
+    form.fields = formFields;
+    forEach(formFields, field => (field as any).initialize());
+
+    const validation = {
+        deferred: null as Deferred<any> | null,
+        subscription: null as Subscription | null,
+    }
+
+    const sub = new Subject();    
+    
+    function validateForm(): Promise<boolean> {
+        if (validation.deferred == null) {
+            validation.deferred = new Deferred();
+        }
+        sub.next();
+        return validation.deferred.promise;
     }
 
     reaction(() => map(formFields, it => {
@@ -82,17 +86,15 @@ export function createForm<T extends Fields>(fields: T): Form & {[K in keyof T]:
             isTouched: it.isTouched
         }
     }), () => {
-        form.validateForm();
-        form.update();
+        validateForm();
     }, {
         fireImmediately: true
     })
 
-    const sub = new Subject();
     validation.subscription = sub.asObservable()
         .do(action(() => formMetadata.isValidating = true))
         .switchMap(() => {
-            return Promise.all(map(formFields, it => it.validate(form)))
+            return Promise.all(map(formFields, it => it.validate()))
                 .then(action((results: Array<boolean>) => {
                     const result = every(results);
                     formMetadata.isValid = result;

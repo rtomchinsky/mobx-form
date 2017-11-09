@@ -1,8 +1,9 @@
 import test from 'ava';
 import { FormValue } from '../FormValue';
+import { reaction } from 'mobx';
 
 test('FormValue is pristine without changes', t => {
-    const value = new FormValue({
+    const value = new FormValue(null!, {
         initialValue: ''
     });
 
@@ -12,7 +13,7 @@ test('FormValue is pristine without changes', t => {
 });
 
 test('FormValue is not pristine with changes', t => {
-    const value = new FormValue({
+    const value = new FormValue(null!, {
         initialValue: ''
     });
 
@@ -24,7 +25,7 @@ test('FormValue is not pristine with changes', t => {
 });
 
 test('FormValue accepts changes to isTouched', t => {
-    const value = new FormValue({
+    const value = new FormValue(null!, {
         initialValue: ''
     });
 
@@ -34,18 +35,18 @@ test('FormValue accepts changes to isTouched', t => {
 });
 
 test('FormValue accepts validation with string result', t => {
-    const value = new FormValue({
+    const value = new FormValue(null!, {
         initialValue: '',
         validator: (value: string) => value.length === 1 ? undefined : 'Error'
     });
 
-    return value.validate({} as any).then(() => {
+    return value.validate(/*  */).then(() => {
         t.false(value.isValid);
         value.value = '1';
         t.is(value.errors.length, 1);
         t.is(value.errors[0], 'Error')
 
-        return value.validate({} as any).then(() => {
+        return value.validate(/*  */).then(() => {
             t.true(value.isValid);
             t.is(value.errors.length, 0);
         })
@@ -53,19 +54,19 @@ test('FormValue accepts validation with string result', t => {
 })
 
 test('FormValue accepts validation with array of string result', t => {
-    const value = new FormValue({
+    const value = new FormValue(null!, {
         initialValue: '',
         validator: (value: string) => value.length === 1 ? undefined : [ 'Error', 'Other error' ]
     });
 
-    return value.validate({} as any).then(() => {
+    return value.validate().then(() => {
         t.false(value.isValid);
         value.value = '1';
         t.is(value.errors.length, 2);
         t.is(value.errors[0], 'Error')
         t.is(value.errors[1], 'Other error')
 
-        return value.validate({} as any).then(() => {
+        return value.validate().then(() => {
             t.true(value.isValid);
             t.is(value.errors.length, 0);
         })
@@ -73,38 +74,41 @@ test('FormValue accepts validation with array of string result', t => {
 })
 
 test('FormValue accepts validation with Promise result', t => {
-    const value = new FormValue({
+    const value = new FormValue(null!, {
         initialValue: '',
         validator: (value: string) => Promise.resolve(value.length === 1 ? undefined : [ 'Error', 'Other error' ])
     });
 
-    return value.validate({} as any).then(() => {
+    return value.validate().then(() => {
         t.false(value.isValid);
         value.value = '1';
         t.is(value.errors.length, 2);
         t.is(value.errors[0], 'Error')
         t.is(value.errors[1], 'Other error')
 
-        return value.validate({} as any).then(() => {
+        return value.validate().then(() => {
             t.true(value.isValid);
             t.is(value.errors.length, 0);
         })
     })
 })
 
-test('FormValue accepts an onFormUpdate function', t => {
-    const value = new FormValue({
+test('FormValue accepts a reaction function', t => {
+    const value: FormValue<string> = new FormValue(null!, {
         initialValue: '',
-        onFormUpdate: () => {
-            t.pass();
-        }
+        reaction: () => {
+            return reaction(() => value.value, (value) => {
+                t.is(value, '1');
+            })
+        },
     });
-    value.update({} as any);
+    (value as any).initialize();
+    value.value = '1';
     t.plan(1);
 });
 
 test('FormValue can be reset', t => {
-    const value = new FormValue({
+    const value = new FormValue(null!, {
         initialValue: ''
     });
 
@@ -116,16 +120,14 @@ test('FormValue can be reset', t => {
 });
 
 test('FormValue is only valid if not validating', t => {
-    const value = new FormValue({
+    const value = new FormValue(null!, {
         initialValue: '',
-        validator: () => {
-            return new Promise((resolve) => {
-                setTimeout(resolve, 0);
-            });
-        }
+        validator: () => new Promise((resolve) => {
+            setTimeout(resolve, 0);
+        }),
     });
 
-    const promise = value.validate(null!).then(() => {
+    const promise = value.validate().then(() => {
         t.true(value.isValid);
     });
     t.false(value.isValid);

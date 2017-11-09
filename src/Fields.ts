@@ -1,2 +1,2 @@
-import { FormValue } from './FormValue';
-export type Fields = Record<string, FormValue<any>>;
+import { FormValueOptions } from './FormValue';
+export type Fields = Record<string, FormValueOptions<any>>;

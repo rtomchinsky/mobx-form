@@ -9,6 +9,7 @@ export declare type WrappedFieldProps<P = {}, T = string> = P & {
         value: T;
     };
     errors?: Array<string>;
+    disabled?: boolean;
 };
 export declare type FieldProps<T = string, P extends {} = {}> = {
     formValue: FormValue<T>;
@@ -24,5 +25,5 @@ export declare class Field<T = string> extends React.Component<FieldProps<T>> {
     private touch;
     handleFocus: (e: React.FocusEvent<any>) => void;
     handleBlur: (e: React.FocusEvent<any>) => void;
-    render(): JSX.Element | null;
+    render(): JSX.Element;
 }

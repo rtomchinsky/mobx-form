@@ -1,7 +1,8 @@
+import { IReactionDisposer } from 'mobx';
 import { Deferred } from './internal/Deferred';
 import { Subject } from 'rxjs/Subject';
 import { observable, computed, action, runInAction, toJS } from 'mobx';
-import { flatMap, isObjectLike, isArray } from 'lodash';
+import { flatMap, isObjectLike, isArray, once } from 'lodash';
 
 import { Validator } from './Validator';
 import { Form } from './Form';
@@ -12,7 +13,7 @@ import 'rxjs/add/operator/switchMap';
 export type FormValueOptions<T> = {
     initialValue: T;
     validator?: Validator<T>;
-    onFormUpdate?: (this: FormValue<T>, form: Form) => void;
+    reaction?: (form: Form<any>) => IReactionDisposer;
 }
 
 export class FormValue<T = {}> {
@@ -25,24 +26,23 @@ export class FormValue<T = {}> {
     @observable private _errors: string[] = [];
     @observable private _touched: boolean = false;
     @observable private _isValidating: boolean = false;
-    @observable public enabled: boolean = true;
+    @observable public disabled: boolean = false;
     
-    private validator?: Validator<T>;
-    private onFormUpdate?: (this: FormValue<T>, form: Form) => void;
+    private validator?: FormValueOptions<T>['validator'];
+    private reaction?: IReactionDisposer;
     private deferred: Deferred<boolean> | null;
-    private validationSubject: Subject<Form>;
+    private validationSubject: Subject<void>;
 
-    constructor(options: FormValueOptions<T>) {
+    constructor(private form: Form<any>, private options: FormValueOptions<T>) {
         this._initialValue = options.initialValue;
         this._value = options.initialValue;
-        this.onFormUpdate = options.onFormUpdate;
         this.validator = options.validator;
 
-        this.validationSubject = new Subject<Form>();
+        this.validationSubject = new Subject();
         this.validationSubject.asObservable()
-            .switchMap(action(async (form: Form) => {
-                this._isValidating = true;
-                if (!this.enabled || this.validator == null) {
+            .switchMap(action(async () => {
+                this._isValidating = !this.disabled;
+                if (this.disabled || this.validator == null) {
                     this._errors = [];
                     return true;
                 }
@@ -107,29 +107,35 @@ export class FormValue<T = {}> {
     }
 
     @action disable() {
-        this.enabled = false;
+        this.disabled = true;
     }
 
     @action enable() {
-        this.enabled = true;
+        this.disabled = false;
     }
 
-    update(form: Form): void {
-        if (this.onFormUpdate) {
-            this.onFormUpdate.call(this, form);
+    dispose() {
+        if (this.reaction) {
+            this.reaction();
         }
     }
+
+    protected initialize = once(() => {
+        if (this.options.reaction) {
+            this.reaction = this.options.reaction(this.form);
+        }
+    })
 
     @action
     reset(): void {
         this.value = this._initialValue;
     }
 
-    async validate(form: Form): Promise<boolean> {
+    async validate(): Promise<boolean> {
         if (this.deferred == null) {
             this.deferred = new Deferred();
         }
-        this.validationSubject.next(form);
+        this.validationSubject.next();
         return this.deferred.promise;
     }
 }
