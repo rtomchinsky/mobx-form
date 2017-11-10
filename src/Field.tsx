@@ -26,6 +26,9 @@ export type FieldProps<T = string, P extends {} = {}> = {
 };
 
 function isEvent(e: any): e is React.ChangeEvent<any> {
+    if (e == null) {
+        return false;
+    }
     return e.target || e.nativeEvent;
 }
 
