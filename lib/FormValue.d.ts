@@ -12,7 +12,7 @@ export declare class FormValue<T = {}> {
     private form;
     private options;
     static isFormValue(t: any): t is FormValue<any>;
-    private readonly _initialValue;
+    private _initialValue;
     private _value;
     private _errors;
     private _touched;
@@ -32,6 +32,7 @@ export declare class FormValue<T = {}> {
     readonly isValid: boolean;
     disable(): void;
     enable(): void;
+    commit(): void;
     dispose(): void;
     protected initialize: () => void;
     reset(): void;

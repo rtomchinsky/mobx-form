@@ -21,7 +21,7 @@ export class FormValue<T = {}> {
         return t instanceof FormValue;
     }
 
-    private readonly _initialValue: T;
+    @observable private _initialValue: T;
     @observable private _value: T;
     @observable private _errors: string[] = [];
     @observable private _touched: boolean = false;
@@ -112,6 +112,10 @@ export class FormValue<T = {}> {
 
     @action enable() {
         this.disabled = false;
+    }
+
+    @action commit() {
+        this._initialValue = this._value;
     }
 
     dispose() {

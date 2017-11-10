@@ -133,3 +133,16 @@ test('FormValue is only valid if not validating', t => {
     t.false(value.isValid);
     return promise;
 });
+
+test('FormValue#commit updates the intial value to the current value', t => {
+    const value = new FormValue(null!, {
+        initialValue: '',
+        validator: () => new Promise((resolve) => {
+            setTimeout(resolve, 0);
+        }),
+    });
+    value.value = '123';
+    t.false(value.isPristine);
+    value.commit();
+    t.true(value.isPristine);
+});

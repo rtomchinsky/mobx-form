@@ -1,13 +1,15 @@
 import { FormValue } from './FormValue';
 export interface Form<F extends Record<string, FormValue<any>>> {
-    isPristine: boolean;
-    isDirty: boolean;
-    isSubmitting: boolean;
-    isValidating: boolean;
-    isValid: boolean;
-    fields: F;
+    readonly isTouched: boolean;
+    readonly isPristine: boolean;
+    readonly isDirty: boolean;
+    readonly isSubmitting: boolean;
+    readonly isValidating: boolean;
+    readonly isValid: boolean;
+    readonly fields: F;
     submit<T>(onSubmit: OnSubmitFunction<T>): Promise<T>;
     reset(): void;
-    each(cb: (values: F) => void): void;
+    commit(): void;
+    each(cb: (value: FormValue<any>, key?: string) => any): void;
 }
 export declare type OnSubmitFunction<T, F extends any = any> = (form: F) => Promise<T>;
