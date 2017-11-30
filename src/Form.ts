@@ -44,7 +44,7 @@ export class Form {
                 this.deferred!.resolve(result);
                 this.deferred = null
             })
-
+        
         this.formValues = reduce(this as {}, (acc, value, key) => {
             if (FormValue.isFormValue(value)) {
                 acc[key] = value;
@@ -58,8 +58,8 @@ export class Form {
                 isTouched: it.isTouched
             }
         }), () => {
-            this.validateForm();
             this.update();
+            this.validateForm();
         }, {
             fireImmediately: true
         });
