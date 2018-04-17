@@ -6,6 +6,7 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "test": "ava",
+    "test:watch": "ava -w",
     "test:cover": "nyc --all npm test",
     "build": "rimraf lib && tsc",
     "preversion": "npm test"
@@ -32,6 +33,11 @@
   "peerDependencies": {
     "react": "^15.6.1",
     "react-dom": "^15.6.1"
+  },
+  "ava": {
+    "source": [
+      "lib/**/*.{js|jsx}"
+    ]
   },
   "nyc": {
     "include": [
