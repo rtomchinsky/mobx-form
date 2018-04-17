@@ -76,7 +76,7 @@ export function createForm<T extends Fields>(fields: T): Form & {[K in keyof T]:
         ...(formFields as any)
     }
 
-    reaction(() => map(formFields, it => {
+    reaction(() => map(formFields, (it: FormValue<any>) => {
         return {
             value: it.value,
             isTouched: it.isTouched
@@ -92,7 +92,7 @@ export function createForm<T extends Fields>(fields: T): Form & {[K in keyof T]:
     validation.subscription = sub.asObservable()
         .do(action(() => formMetadata.isValidating = true))
         .switchMap(() => {
-            return Promise.all(map(formFields, it => it.validate(form)))
+            return Promise.all(map(formFields, (it: FormValue<any>) => it.validate(form)))
                 .then(action((results: Array<boolean>) => {
                     const result = every(results);
                     formMetadata.isValid = result;
@@ -102,7 +102,7 @@ export function createForm<T extends Fields>(fields: T): Form & {[K in keyof T]:
                     return false;
                 })
         })
-        .subscribe((result) => {
+        .subscribe((result: any) => {
             validation.deferred!.resolve(result);
             validation.deferred = null
         })

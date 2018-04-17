@@ -9,13 +9,13 @@ import { Form } from './Form';
 import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/operator/switchMap';
 
-export type FormValueOptions<T> = {
+export type FormValueOptions<T, F extends Form = Form> = {
     initialValue: T;
-    validator?: Validator<T>;
+    validator?: Validator<T, F>;
     onFormUpdate?: (this: FormValue<T>, form: Form) => void;
 }
 
-export class FormValue<T = {}> {
+export class FormValue<T = {}, F extends Form = Form> {
     static isFormValue(t: any): t is FormValue<any> {
         return t instanceof FormValue;
     }
@@ -27,20 +27,20 @@ export class FormValue<T = {}> {
     @observable private _isValidating: boolean = false;
     @observable public enabled: boolean = true;
     
-    private validator?: Validator<T>;
+    private validator?: Validator<T, F>;
     private onFormUpdate?: (this: FormValue<T>, form: Form) => void;
-    private deferred: Deferred<boolean> | null;
-    private validationSubject: Subject<Form>;
+    private deferred: Deferred<boolean> | null = null;
+    private validationSubject: Subject<F>;
 
-    constructor(options: FormValueOptions<T>) {
+    constructor(options: FormValueOptions<T, F>) {
         this._initialValue = options.initialValue;
         this._value = options.initialValue;
         this.onFormUpdate = options.onFormUpdate;
         this.validator = options.validator;
 
-        this.validationSubject = new Subject<Form>();
+        this.validationSubject = new Subject<F>();
         this.validationSubject.asObservable()
-            .switchMap(action(async (form: Form) => {
+            .switchMap(action(async (form: F) => {
                 this._isValidating = true;
                 if (!this.enabled || this.validator == null) {
                     this._errors = [];
@@ -125,7 +125,7 @@ export class FormValue<T = {}> {
         this.value = this._initialValue;
     }
 
-    async validate(form: Form): Promise<boolean> {
+    async validate(form: F): Promise<boolean> {
         if (this.deferred == null) {
             this.deferred = new Deferred();
         }

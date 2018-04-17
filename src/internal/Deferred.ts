@@ -1,6 +1,7 @@
 export class Deferred<T> {
-    private _resolve: (result: T) => void;
-    private _reject: (reason: any) => void;
+    private _resolve: (result: T) => void = null!;
+    private _reject: (reason: any) => void = null!;
+
     public readonly promise: Promise<T> = new Promise((resolve, reject) => {
         this._resolve = resolve;
         this._reject = reject;

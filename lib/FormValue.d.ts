@@ -2,12 +2,12 @@ import { Validator } from './Validator';
 import { Form } from './Form';
 import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/operator/switchMap';
-export declare type FormValueOptions<T> = {
+export declare type FormValueOptions<T, F extends Form = Form> = {
     initialValue: T;
-    validator?: Validator<T>;
+    validator?: Validator<T, F>;
     onFormUpdate?: (this: FormValue<T>, form: Form) => void;
 };
-export declare class FormValue<T = {}> {
+export declare class FormValue<T = {}, F extends Form = Form> {
     static isFormValue(t: any): t is FormValue<any>;
     private readonly _initialValue;
     private _value;
@@ -19,7 +19,7 @@ export declare class FormValue<T = {}> {
     private onFormUpdate?;
     private deferred;
     private validationSubject;
-    constructor(options: FormValueOptions<T>);
+    constructor(options: FormValueOptions<T, F>);
     value: T;
     readonly errors: string[];
     isTouched: boolean;
@@ -31,5 +31,5 @@ export declare class FormValue<T = {}> {
     enable(): void;
     update(form: Form): void;
     reset(): void;
-    validate(form: Form): Promise<boolean>;
+    validate(form: F): Promise<boolean>;
 }

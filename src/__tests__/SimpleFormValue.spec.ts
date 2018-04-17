@@ -8,9 +8,9 @@ test('SimpleFormValue is a FormValue', t => {
 });
 
 test('SimpleFormValue accepts validators as vararg', async t => {
-    const value = new SimpleFormValue('',
-        (v) => v.length === 1 ? undefined : 'Error1',
-        (v) => v.length === 2 ? undefined : 'Error2',
+    const value = new SimpleFormValue<string>('',
+        (v: string) => v.length === 1 ? undefined : 'Error1',
+        (v: string) => v.length === 2 ? undefined : 'Error2',
     );
     
     value.value = '1';

@@ -11,10 +11,10 @@ import { FormValue } from './FormValue';
 import { Deferred } from './internal/Deferred';
 
 export class Form {
-    private formValues: Record<string, FormValue>;
+    private formValues: Record<string, FormValue> = {};
     private deferred: Deferred<boolean> | null = null;
     private validationSubject = new Subject();
-    private subscription: Subscription;
+    private subscription: Subscription | null = null;
     @observable private _isValidating: boolean = false;
     @observable private _isSubmitting: boolean = false;
     @observable private _isValid: boolean = false;
@@ -72,7 +72,9 @@ export class Form {
 
     dispose(): void {
         this.initialize();
-        this.subscription.unsubscribe();
+        if (this.subscription) {
+            this.subscription.unsubscribe();
+        }
     }
 
     @computed get isPristine(): boolean {

@@ -6,7 +6,6 @@ import { FormValue } from '../FormValue';
 import { defer } from 'lodash';
 
 class TestForm extends Form {
-
     fieldOne = new FormValue({
         initialValue: '',
         validator: (_, form: TestForm) => form.fieldTwo.enabled ? undefined : 'error'
