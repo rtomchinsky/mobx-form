@@ -28,7 +28,7 @@ test('Form should update before validating', (t) => {
     return form.validateForm().then(() => {
         t.true(form.isValid);
         form.fieldTwo.value = 'sample text';
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             defer(() => {
                 t.false(form.isValid);
                 resolve();

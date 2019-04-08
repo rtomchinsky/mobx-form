@@ -12,7 +12,7 @@ import 'rxjs/add/operator/switchMap';
 export type FormValueOptions<T, F extends Form = Form> = {
     initialValue: T;
     validator?: Validator<T, F>;
-    onFormUpdate?: (this: FormValue<T>, form: Form) => void;
+    onFormUpdate?: (this: FormValue<T, F>, form: F) => void;
 }
 
 export class FormValue<T = {}, F extends Form = Form> {
@@ -26,9 +26,9 @@ export class FormValue<T = {}, F extends Form = Form> {
     @observable private _touched: boolean = false;
     @observable private _isValidating: boolean = false;
     @observable public enabled: boolean = true;
-    
+
     private validator?: Validator<T, F>;
-    private onFormUpdate?: (this: FormValue<T>, form: Form) => void;
+    private onFormUpdate?: (this: FormValue<T, F>, form: F) => void;
     private deferred: Deferred<boolean> | null = null;
     private validationSubject: Subject<F>;
 
@@ -52,10 +52,10 @@ export class FormValue<T = {}, F extends Form = Form> {
                     if (result == null) {
                         errors = [];
                     } else if (isArray(result)) {
-                        errors = flatMap(result, r => isArray(r) ? r : [ r ])
+                        errors = flatMap(result, r => isArray(r) ? r : [r])
                             .filter(it => it != null) as string[]
                     } else {
-                        errors = [ result as string ];
+                        errors = [result as string];
                     }
                 } finally {
                     runInAction(() => {
@@ -70,7 +70,7 @@ export class FormValue<T = {}, F extends Form = Form> {
                 this.deferred = null;
             });
     }
-    
+
     @computed get value() {
         return isObjectLike(this._value) ? toJS(this._value) : this._value;
     }
@@ -114,7 +114,7 @@ export class FormValue<T = {}, F extends Form = Form> {
         this.enabled = true;
     }
 
-    update(form: Form): void {
+    update(form: F): void {
         if (this.onFormUpdate) {
             this.onFormUpdate.call(this, form);
         }

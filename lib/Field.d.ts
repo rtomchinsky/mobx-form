@@ -1,4 +1,3 @@
-/// <reference types="react" />
 import * as React from 'react';
 import { FormValue } from './FormValue';
 export declare type WrappedFieldProps<P = {}, T = string> = P & {

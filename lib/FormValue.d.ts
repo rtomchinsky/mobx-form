@@ -5,7 +5,7 @@ import 'rxjs/add/operator/switchMap';
 export declare type FormValueOptions<T, F extends Form = Form> = {
     initialValue: T;
     validator?: Validator<T, F>;
-    onFormUpdate?: (this: FormValue<T>, form: Form) => void;
+    onFormUpdate?: (this: FormValue<T, F>, form: F) => void;
 };
 export declare class FormValue<T = {}, F extends Form = Form> {
     static isFormValue(t: any): t is FormValue<any>;
@@ -29,7 +29,7 @@ export declare class FormValue<T = {}, F extends Form = Form> {
     readonly isValid: boolean;
     disable(): void;
     enable(): void;
-    update(form: Form): void;
+    update(form: F): void;
     reset(): void;
     validate(form: F): Promise<boolean>;
 }

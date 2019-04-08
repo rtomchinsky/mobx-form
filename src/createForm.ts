@@ -29,7 +29,7 @@ export function createForm<T extends Fields>(fields: T): Form & {[K in keyof T]:
         deferred: null as Deferred<any> | null,
         subscription: null as Subscription | null,
     }
-    const form: Form & {[K in keyof T]: FormValue<any>} = {
+    const form: Form & {[K in keyof T]: T[K]} = {
         get isDirty() { return formMetadata.isDirty },
         get isPristine() { return formMetadata.isPristine },
         get isSubmitting() { return formMetadata.isSubmitting },
@@ -49,7 +49,7 @@ export function createForm<T extends Fields>(fields: T): Form & {[K in keyof T]:
             });
         },
 
-        async submit<T>(onSubmit: OnSubmitFunction<T, {[K in keyof T]: FormValue<any>}>): Promise<T> {
+        async submit<T>(onSubmit: OnSubmitFunction<T, typeof form>): Promise<T> {
             if (formMetadata.isSubmitting) {
                 return Promise.reject('submitting');
             } else if (!formMetadata.isValid) {
